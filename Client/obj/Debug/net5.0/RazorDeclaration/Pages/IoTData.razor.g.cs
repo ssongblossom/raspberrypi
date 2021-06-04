@@ -96,6 +96,13 @@ using blazorHub.Shared;
 #line default
 #line hidden
 #nullable disable
+#nullable restore
+#line 6 "/home/pi/Projects/blazorHub/Client/Pages/IoTData.razor"
+using System.IO.Ports;
+
+#line default
+#line hidden
+#nullable disable
     [Microsoft.AspNetCore.Components.RouteAttribute("/iotdata")]
     public partial class IoTData : Microsoft.AspNetCore.Components.ComponentBase
     {
@@ -107,9 +114,12 @@ using blazorHub.Shared;
 #nullable restore
 #line 39 "/home/pi/Projects/blazorHub/Client/Pages/IoTData.razor"
        
-    bool isRunning = false;
+    bool toggle = false; //꺼짐
     private HubConnectionBuilder _hubConnectionBuilder { get; set; }
+    private HubConnection hubConnection;
     private Func<ArduinoData, Task> handleReceiveData;
+
+    private Func<bool, Task> handleSwitchStatus;
     ArduinoData data = new ArduinoData();
 
     protected override async Task OnInitializedAsync()
@@ -119,27 +129,38 @@ using blazorHub.Shared;
                     .WithUrl(NavigationManager.ToAbsoluteUri("/datahub"))
                     .WithAutomaticReconnect()
                     .Build();
-            //portConnection.On("ReceiveSwitchStatus", this.handleSwitchStatus);
-            portConnection.On("ReceiveData", this.handleReceiveData);
-            await portConnection.StartAsync();
+        portConnection.On("ReceiveData", this.handleReceiveData);
+        await portConnection.StartAsync();
+        
+        handleSwitchStatus += ReceiveSwitchStatus;
+        hubConnection = new HubConnectionBuilder()
+                    .WithUrl(NavigationManager.ToAbsoluteUri("/ctrlhub"))
+                    .WithAutomaticReconnect()
+                    .Build();
+        hubConnection.On("ReceiveSwitchStatus", this.handleSwitchStatus);
+        await hubConnection.StartAsync();
     }
 
     Task ReceiveData(ArduinoData recivedData)
     {
         data = recivedData;
-        DataPrint(recivedData);
         StateHasChanged();
         return Task.CompletedTask;
     }
 
-    public void DataPrint(ArduinoData data)
-        {
-            System.Console.WriteLine($"TEMP : DHT11 - {data.DHT11Temp}  DHT22 - {data.DHT22Temp}");
-            System.Console.WriteLine($"Humidity: DHT11 - {data.DHT11Humid} DHT22 - {data.DHT22Humid}");
-            System.Console.WriteLine($"Light Intensity: DM460 - {data.DM460LightIntensity} DM2007- {data.DM2007LightIntensity}");
-            System.Console.WriteLine($"Air: CO - {data.CO} Alcohol- {data.Alcohol} CO2 - {data.CO2}");
-            System.Console.WriteLine($"Tolueno: {data.Tolueno} NH4 - {data.NH4} Acetona - {data.Acetona}");
-        }
+    Task ReceiveSwitchStatus(bool arg)
+    {
+        toggle = arg;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    async Task Toggle()
+    {
+        await hubConnection.SendAsync("ReceiveSwitchStatus", toggle);
+    }
+
+    
 
 
 

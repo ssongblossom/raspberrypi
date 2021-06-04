@@ -11,6 +11,7 @@ using blazorHub.Server.Services;
 using blazorHub.Shared;
 using Microsoft.AspNetCore.SignalR.Client;
 using System.IO.Ports;
+using blazorHub.Server.Controllers;
 
 namespace blazorHub.Server
 {
@@ -31,7 +32,9 @@ namespace blazorHub.Server
             services.AddTransient<HubConnectionBuilder>();
             services.AddSingleton(new SerialPort("/dev/rfcomm0", 9600));
             services.AddHostedService<BluetoothPortService>();
-            
+            //services.AddHostedService<ArduinoCtrl>();
+            //services.AddSingleton<ArduinoController>();
+
             services.AddControllersWithViews();
             services.AddRazorPages();
             services.AddSignalR();
@@ -71,6 +74,7 @@ namespace blazorHub.Server
                 endpoints.MapControllers();
                 endpoints.MapFallbackToFile("index.html");
                 endpoints.MapHub<DataHub>("/datahub");
+                endpoints.MapHub<ControlHub>("/ctrlhub");
             });
         }
     }

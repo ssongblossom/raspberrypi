@@ -51,10 +51,9 @@ namespace blazorHub.Server.Services
                 System.Console.WriteLine(ex.Message);//예외일 때 보여주기
             }
 
-            _BSerialPort.Write("1");
-
+            
             _timer = new Timer(DoWork, null, TimeSpan.Zero,
-                TimeSpan.FromSeconds(5));
+                TimeSpan.FromSeconds(2));
 
             return Task.CompletedTask;
         }
