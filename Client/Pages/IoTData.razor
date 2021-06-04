@@ -1,0 +1,84 @@
+@page "/iotdata"
+@using System.Net.Http
+@using System.Net.Http.Json
+@using Microsoft.AspNetCore.SignalR.Client
+@using blazorHub.Shared
+
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+
+<h1>IoT Data</h1>
+
+<p>Current status : @isRunning</p>
+
+
+<p>
+    Temp: <br>
+    DHT11 - @data.DHT11Temp <br>
+    DHT22 - @data.DHT22Temp <br>
+    <br>
+    Humidity: <br>
+    DHT11 - @data.DHT11Humid <br>
+    DHT22 - @data.DHT22Humid <br>
+    <br>
+    Light Intensity:  <br>
+    DM460: @data.DM460LightIntensity <br>
+    DM2007: @data.DM2007LightIntensity <br>
+    <br>
+    Air<br>
+    CO: @data.CO <br>
+    Alcohol: @data.Alcohol <br>
+    CO2: @data.CO2 <br>
+    Tolueno: @data.Tolueno <br>
+    NH4: @data.NH4 <br>
+    Acetona: @data.Acetona <br>
+    
+</p>
+
+@code {
+    bool isRunning = false;
+    private HubConnectionBuilder _hubConnectionBuilder { get; set; }
+    private Func<ArduinoData, Task> handleReceiveData;
+    ArduinoData data = new ArduinoData();
+
+    protected override async Task OnInitializedAsync()
+    {
+        handleReceiveData += ReceiveData;
+        var portConnection = new HubConnectionBuilder()
+                    .WithUrl(NavigationManager.ToAbsoluteUri("/datahub"))
+                    .WithAutomaticReconnect()
+                    .Build();
+            //portConnection.On("ReceiveSwitchStatus", this.handleSwitchStatus);
+            portConnection.On("ReceiveData", this.handleReceiveData);
+            await portConnection.StartAsync();
+    }
+
+    Task ReceiveData(ArduinoData recivedData)
+    {
+        data = recivedData;
+        DataPrint(recivedData);
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    public void DataPrint(ArduinoData data)
+        {
+            System.Console.WriteLine($"TEMP : DHT11 - {data.DHT11Temp}  DHT22 - {data.DHT22Temp}");
+            System.Console.WriteLine($"Humidity: DHT11 - {data.DHT11Humid} DHT22 - {data.DHT22Humid}");
+            System.Console.WriteLine($"Light Intensity: DM460 - {data.DM460LightIntensity} DM2007- {data.DM2007LightIntensity}");
+            System.Console.WriteLine($"Air: CO - {data.CO} Alcohol- {data.Alcohol} CO2 - {data.CO2}");
+            System.Console.WriteLine($"Tolueno: {data.Tolueno} NH4 - {data.NH4} Acetona - {data.Acetona}");
+        }
+
+
+
+
+
+
+
+
+
+
+
+}

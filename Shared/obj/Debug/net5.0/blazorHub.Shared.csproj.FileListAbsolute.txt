@@ -1,0 +1,12 @@
+/home/pi/Projects/blazorHub/Shared/bin/Debug/net5.0/blazorHub.Shared.deps.json
+/home/pi/Projects/blazorHub/Shared/bin/Debug/net5.0/blazorHub.Shared.dll
+/home/pi/Projects/blazorHub/Shared/bin/Debug/net5.0/ref/blazorHub.Shared.dll
+/home/pi/Projects/blazorHub/Shared/bin/Debug/net5.0/blazorHub.Shared.pdb
+/home/pi/Projects/blazorHub/Shared/obj/Debug/net5.0/blazorHub.Shared.csprojAssemblyReference.cache
+/home/pi/Projects/blazorHub/Shared/obj/Debug/net5.0/blazorHub.Shared.GeneratedMSBuildEditorConfig.editorconfig
+/home/pi/Projects/blazorHub/Shared/obj/Debug/net5.0/blazorHub.Shared.AssemblyInfoInputs.cache
+/home/pi/Projects/blazorHub/Shared/obj/Debug/net5.0/blazorHub.Shared.AssemblyInfo.cs
+/home/pi/Projects/blazorHub/Shared/obj/Debug/net5.0/blazorHub.Shared.csproj.CoreCompileInputs.cache
+/home/pi/Projects/blazorHub/Shared/obj/Debug/net5.0/blazorHub.Shared.dll
+/home/pi/Projects/blazorHub/Shared/obj/Debug/net5.0/ref/blazorHub.Shared.dll
+/home/pi/Projects/blazorHub/Shared/obj/Debug/net5.0/blazorHub.Shared.pdb
