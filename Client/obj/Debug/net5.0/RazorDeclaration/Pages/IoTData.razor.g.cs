@@ -160,18 +160,6 @@ using System.IO.Ports;
         await hubConnection.SendAsync("ReceiveSwitchStatus", toggle);
     }
 
-    
-
-
-
-
-
-
-
-
-
-
-
 
 #line default
 #line hidden
