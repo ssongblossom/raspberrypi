@@ -32,8 +32,6 @@ namespace blazorHub.Server
             services.AddTransient<HubConnectionBuilder>();
             services.AddSingleton(new SerialPort("/dev/rfcomm0", 9600));
             services.AddHostedService<BluetoothPortService>();
-            //services.AddHostedService<ArduinoCtrl>();
-            //services.AddSingleton<ArduinoController>();
 
             services.AddControllersWithViews();
             services.AddRazorPages();

@@ -12,6 +12,7 @@ using System.IO.Ports;
 
 namespace blazorHub.Server.Services
 {
+    
 
     internal class BluetoothPortService : IHostedService, IDisposable
     {
@@ -22,7 +23,9 @@ namespace blazorHub.Server.Services
         internal static ArduinoData arduinoData = new ArduinoData();
         ArduinoData tempData = new ArduinoData();
 
+        //Sensor명
         string[] strArr = new string[] {"DHT11", "DHT22", "DM460", "DM2007", "CO", "Alcohol", "CO2", "Tolueno", "NH4", "Acetona"};
+        enum Sensors {DHT11, DHT22, DM460, DM2007, CO, Alcohol, CO2, Tolueno, NH4, Acetona, NumOfSensors}
 
         public BluetoothPortService(
             ILogger<BluetoothPortService> logger,
@@ -44,7 +47,7 @@ namespace blazorHub.Server.Services
             try
             {
                 if (!_BSerialPort.IsOpen) 
-                    _BSerialPort.Open(); //만약 포트가 열려있지 않다면 엽시다.
+                    _BSerialPort.Open(); //만약 포트가 열려있지 않다면 포트 오픈
             }
             catch (Exception ex)
             {
@@ -53,7 +56,7 @@ namespace blazorHub.Server.Services
 
             
             _timer = new Timer(DoWork, null, TimeSpan.Zero,
-                TimeSpan.FromSeconds(2));
+                TimeSpan.FromSeconds(2)); //2초마다 한번씩 DoWork하기
 
             return Task.CompletedTask;
         }
@@ -64,11 +67,11 @@ namespace blazorHub.Server.Services
             var rng = new Random();
 
             _logger.LogDebug($"Read Success: {tempData.IsLastReadSuccessful}");
-            if (tempData.IsLastReadSuccessful)
+            if (tempData.IsLastReadSuccessful) //마지막 데이터까지 받았다면, 
             {
-                arduinoData = tempData;
+                arduinoData = tempData; //보낼 데이터에 받아놓은 데이터 전달
                 //DataPrint(arduinoData);
-                _hubContext.Clients.All.SendAsync("ReceiveData", arduinoData);
+                _hubContext.Clients.All.SendAsync("ReceiveData", arduinoData); //클라이언트로 자료 전송
             }
 
         }
@@ -82,19 +85,20 @@ namespace blazorHub.Server.Services
             return Task.CompletedTask;
         }
 
-                public void Dispose()
+        public void Dispose()
         {
             _timer?.Dispose();
         }
 
+        //포트에서 이벤트 발생시 호출되는 함수
         private void DataReceivedHandler(object sender, SerialDataReceivedEventArgs e)
         {
             try
             {
                 SerialPort spl = (SerialPort)sender;
                 string recievedData = spl.ReadLine();
-                System.Console.WriteLine($"{recievedData}\n\n");
-                DataProcessor(recievedData, tempData);
+                System.Console.WriteLine($"{recievedData}");
+                DataProcessor(recievedData, tempData); //string으로 넘어오는 자료를 각 센서에 맞게 데이터 가공하기
                 
             }
             catch (Exception ex)
@@ -104,6 +108,7 @@ namespace blazorHub.Server.Services
             }
         }
 
+        //저장된 자료를 콘솔 화면에 출력하는 함수
         public void DataPrint(ArduinoData data)
         {
             System.Console.WriteLine($"TEMP : DHT11 - {data.DHT11Temp}  DHT22 - {data.DHT22Temp}");
@@ -113,17 +118,19 @@ namespace blazorHub.Server.Services
             System.Console.WriteLine($"Tolueno: {data.Tolueno} NH4 - {data.NH4} Acetona - {data.Acetona}");
         }
 
+        //콘솔로 입력되는 데이터를 데이터형에 맞게 저장하는 함수
         private void DataProcessor(string recievedData, ArduinoData data)
         {
             string result ="";
-            string strData = recievedData.Substring(0,recievedData.Length); //개행문자 삭제
+            string strData = recievedData.Substring(0,recievedData.Length); //전달받은 데이터를 그대로 값복사하여 저장
             int index = 0;
+            
 
-            //데이터를 ':'를 기준으로 split 0번째에는 센서이름, 1번째에는 센서 값
+            //데이터를 ':'를 기준으로 split 0번째에는 센서이름, 1번째에는 센서 값 (ex DM460: 110 -> datas[0] : DM460 , datas[1] : 110
             string[] datas = strData.Split(':');
 
             //받은 데이터가 어떤 센서의 데이터인지 구하기 
-            for(int i=0; i<10; i++)
+            for(int i=0; i<(int)Sensors.NumOfSensors; i++)
             {
                 string sensorName = strArr[i];
                 if(datas[0].Equals(sensorName))
@@ -136,19 +143,19 @@ namespace blazorHub.Server.Services
             datas[1].Replace(" ",""); // 공백 제거
             
             //센서의 종류에 따라서 데이터 가공하기
-            //dht11 or dht22 : (temp,humid)
-            if(index ==0 || index ==1 )
+           
+            if(index == (int)Sensors.DHT11 || index == (int)Sensors.DHT22 )    //dht11 or dht22 : (temp,humid)
             {
                 string[] subs = datas[1].Split(','); //0: '(temp' /1: 'humid)'
                 string temp = subs[0].Remove(0,1);    // '(' 제거
                 string humid = subs[1].Remove(subs[1].Length-2); // ')' 제거
 
-                if(index == 0)
+                if(index == (int)Sensors.DHT11)
                 {
                     data.DHT11Temp = Convert.ToDouble(temp);
                     data.DHT11Humid = Convert.ToDouble(humid);
                 }
-                else if (index == 1)
+                else if (index == (int)Sensors.DHT22)  
                 {
                     data.DHT22Temp = Convert.ToDouble(temp);
                     data.DHT22Humid = Convert.ToDouble(humid);
@@ -159,28 +166,28 @@ namespace blazorHub.Server.Services
             {
                 switch (index)
                 {
-                    case 2:
+                    case (int)Sensors.DM460:
                         data.DM460LightIntensity = Convert.ToInt32(datas[1]);
                         break;
-                    case 3: 
+                    case (int)Sensors.DM2007: 
                         data.DM2007LightIntensity = Convert.ToInt32(datas[1]);
                         break;
-                    case 4:
+                    case (int)Sensors.CO:
                         data.CO = Convert.ToDouble(datas[1]);
                         break;
-                    case 5: 
+                    case (int)Sensors.Alcohol: 
                         data.Alcohol = Convert.ToDouble(datas[1]);
                         break;
-                    case 6:
+                    case (int)Sensors.CO2:
                         data.CO2 = Convert.ToDouble(datas[1]);
                         break;
-                    case 7:
+                    case (int)Sensors.Tolueno:
                         data.Tolueno = Convert.ToDouble(datas[1]);
                         break;
-                    case 8:
+                    case (int)Sensors.NH4:
                         data.NH4 = Convert.ToDouble(datas[1]);
                         break;
-                    case 9:
+                    case (int)Sensors.Acetona:
                         data.Acetona = Convert.ToDouble(datas[1]);
                         data.IsLastReadSuccessful = true;
                         break;
