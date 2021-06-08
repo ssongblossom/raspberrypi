@@ -28,4 +28,4 @@ namespace blazorHub.Server.Hubs
             await Clients.All.SendAsync("ReceiveSwitchStatus", !toggle);
         }
     }
-}
+}   
